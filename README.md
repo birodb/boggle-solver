@@ -1,6 +1,6 @@
 ## boggle-solver
 A _fully functional_ [xquery 3.1](https://www.w3.org/XML/Group/qtspecs/specifications/xquery-31/html/xquery-31-diff.html) implementation to solve the [boggle game](https://en.wikipedia.org/wiki/Boggle).  
-[James](//github.com/phraemer "@phraemer") brought this up at a coffee break as a mental exercise and we twisted the challenge a bit to implement it using a functional language. The primary choice was clojure, but at the time just started learning it and had a lot more experience with xml processing languages xpath/xquery/xslt.  
+[James](//github.com/phraemer "@phraemer") brought this up at a coffee break as a mental exercise and we twisted the challenge a bit to implement it using a functional language. The primary language of choice was clojure, but at the time just started learning it and had a lot more experience with xml processing languages (like: xpath/xquery/xslt).  
    
 TODO: 
   * optimize trie creation - currently takes the most of the time (is implemented in a pure functional way and creates a lot of xpath maps internally) - on the other hand is a nice use case for xquery engine optimization
