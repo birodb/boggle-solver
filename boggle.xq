@@ -1,5 +1,6 @@
 xquery version "3.1";
 
+declare namespace java="java";
 
 (:["lrytte"  "vthrwe"  "eghwne"  "seotis"]
 ["anaeeg"  "idsytt"  "oattow"  "mtoicu"]
@@ -23,21 +24,29 @@ declare variable $GenerateDice := function( $seed ){ fold-left(
 	function( $res, $str ){ 
 		head($res)?next(),
 		tail($res),
-		string-to-codepoints( $str )[ (:trace:)(head($res)?permute( 1 to 6 )[1])]=>codepoints-to-string() 
+		(:trace:)((head($res)?permute( local:tolower-and-split( $str ) ))[1])
 	}
  )=>tail() };
  
- declare variable $SerializeDice := function( $dice ){ string-join( 
+declare variable $SerializeDice := function( $dice ){ string-join( 
 	 for $i  in ( 1 to $h ) return ( for $j in ( 1 to $w ) return $dice[ ($i - 1) * $w + $j ], '&#x0A;' )
 , ' ' ) };
 
-declare variable $Dict := fold-right( $in, map{}, function( $i, $map ){ local:add-chars($map, string-to-codepoints(lower-case($i))!codepoints-to-string(.)) } ); (:=> serialize(map{'method':'adaptive'}), :)
+declare variable $Dict := fold-right( $in, map{}, function( $i, $map ){ local:add-chars($map, local:tolower-and-split($i)) } ); (:=> serialize(map{'method':'adaptive'}), :)
 
+declare function local:tolower-and-split($i as xs:string) (:as xs:string*:)
+{
+	string-to-codepoints(lower-case($i))!codepoints-to-string(.)(:5sec:)
+	(:let $l := lower-case($i) return for $k in ( 1 to string-length($l) ) return substring( $l, $k, 1 ) :)(:9sec:)
+	(:analyze-string(lower-case($i), '.')//text()/string():)(:29sec:)
+	(:java:java.lang.String.toCharArray( lower-case($i) ):)(:4.7sec:)
+	
+};
 
 declare function local:add-chars( $map, $ch )
 {
 	if ( empty( $ch ) ) then
-		map:put( $map, 0, 1 )
+		map:put( $map, "#", true() )
 	else 
 		let $head := head( $ch ) return 
 			if ( map:contains( $map, $head ) ) then 
@@ -67,7 +76,7 @@ declare function local:process-transitions( $i, $m, $r, $dict, $Dice )
 	let $newdict := $dict($ch) return
 	let $newres := $r||$ch return
 	if (exists($newdict)) then (
-		if ( string-length( (:trace:)( $newres ) ) > 2 and $newdict(0) ) then (:trace:)( $newres(:, "##Word found: ":) ) else (),
+		if ( string-length( (:trace:)( $newres ) ) > 2 and $newdict("#") ) then (:trace:)( $newres(:, "##Word found: ":) ) else (),
 		let $newm := map:remove( $m, $i ) return
 			for $j in $T($i)[map:contains( $newm, . )] return 
 				local:process-transitions( $j, $newm, $newres, $newdict, $Dice ) 
