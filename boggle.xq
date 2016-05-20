@@ -48,9 +48,10 @@ declare function local:add-chars( $map, $ch )
 	if ( empty( $ch ) ) then
 		map:put( $map, "#", true() )
 	else 
-		let $head := head( $ch ) return 
-			if ( map:contains( $map, $head ) ) then 
-				map:put( $map, $head, local:add-chars( $map($head), tail( $ch ) ) )
+		let $head := head( $ch ) 
+		let $oldmap := $map($head) return
+			if ( exists($oldmap) ) then 
+				map:put( $map, $head, local:add-chars( $oldmap, tail( $ch ) ) )
 			else
 				map:put( $map, $head, local:add-chars( map{}, tail( $ch ) ) )
 };
@@ -70,10 +71,10 @@ declare function local:possible-transitions( $x, $y ){
 declare function local:possible-transitions( $i ){ let $xy := local:w-h-from-pos($i) let $x := $xy[1] let $y := $xy[2] return local:possible-transitions( $x, $y ) };
 declare variable $T := map:merge( local:for-each( function( $i ){ map:entry( $i, local:possible-transitions( $i )) } ) );
 
-declare function local:process-transitions( $i, $m, $r, $dict, $Dice )
+declare function local:process-transitions( $i as xs:integer, $m as map(*), $r as xs:string, $dict as map(*), $Dice as xs:string* )
 {
-	let $ch := $Dice[ $i ] return
-	let $newdict := $dict($ch) return
+	let $ch as xs:string := $Dice[ $i ] return
+	let $newdict as map(*)?:= $dict($ch) return
 	let $newres := $r||$ch return
 	if (exists($newdict)) then (
 		if ( string-length( (:trace:)( $newres ) ) > 2 and $newdict("#") ) then (:trace:)( $newres(:, "##Word found: ":) ) else (),
